@@ -102,7 +102,7 @@ bin/windows-x64/Debug/AutoTunHotspot.exe
 
 EXE、运行时 DLL、Qt 插件和 `qt.conf` 放在对应配置目录中。CMake 中间文件与静态库留在 `build/`。输出按 `TARGET_PLATFORM` 与 `$<CONFIG>` 区分平台及配置，`TARGET_PLATFORM` 默认为 `windows-x64`。
 
-测试覆盖断网三轮确认、短暂失败、停止取消、恢复操作选择、重试退避，以及窗口隐藏与唤醒、日志上限和图标切换。实际断网恢复、手机联网及长期运行效果需在目标机器上验证。
+测试覆盖断网三轮确认、短暂失败、停止取消、恢复操作选择、重试退避，以及窗口隐藏与唤醒、日志上限和图标切换。网卡恢复脚本另有 Windows PowerShell 5.1 子进程回归测试，覆盖带括号的 GUID 字符串、GUID 对象、无匹配或重复匹配、非物理网卡，以及 UTF-8 错误输出。测试禁用模块自动加载并模拟网卡命令，不重启真实网卡。实际断网恢复、手机联网及长期运行效果需在目标机器上验证。
 
 ### 打包分发
 
@@ -148,10 +148,11 @@ AutoTunHotspot/
 │   ├── mainwindow.*                # 主窗口、托盘、日志
 │   ├── monitor.*                   # 后台检测与自动恢复
 │   ├── network.*                   # 网卡、ICMP、热点与网卡重启
+│   ├── powershell.*                # GUID 匹配与可读错误输出脚本
 │   ├── policy.h                    # 失败确认和重试策略
 │   ├── icons.*                     # 图标渲染与着色
 │   └── toggleswitch.*              # 自定义蓝灰开关
-├── tests/                          # 恢复策略测试
+├── tests/                          # 恢复策略与 PowerShell 子进程回归测试
 ├── tools/                          # 编译时 ICO 生成工具
 ├── CMakeLists.txt
 ├── CMakePresets.json

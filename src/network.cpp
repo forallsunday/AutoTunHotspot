@@ -1,13 +1,13 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include "network.h"
+#include "powershell.h"
 #include <windows.h>
 #include <iphlpapi.h>
 #include <icmpapi.h>
 #include <QProcess>
 #include <QThread>
 #include <QUuid>
-#include <QRegularExpression>
 #include <memory>
 #include <vector>
 
@@ -169,23 +169,15 @@ bool restartEthernet(const QString& adapterId, const Cancelled& cancelled, const
     if (!isAdministrator()) { log(QStringLiteral("重启网卡需要管理员权限。")); return false; }
     if (cancelled()) return false;
     log(QStringLiteral("正在重启有线网卡：%1（接口 %2）").arg(target.name).arg(target.index));
-    const auto guid = normalizedId(adapterId);
-    // Strictly validated GUID, with a second GUID + hardware check in PowerShell to avoid index reuse.
-    if (!QRegularExpression("^\\{[0-9a-f-]{36}\\}$").match(guid).hasMatch()) return false;
-    const QString script = QStringLiteral(
-        "$ErrorActionPreference='Stop'; "
-        "$a=Get-NetAdapter -IncludeHidden | Where-Object { $_.InterfaceGuid -eq [guid]'%1' -and $_.HardwareInterface }; "
-        "if(@($a).Count -ne 1){throw 'Physical Ethernet adapter no longer available'}; "
-        "$a | Restart-NetAdapter -Confirm:$false -ErrorAction Stop").arg(guid);
-    const auto utf16 = QByteArray(reinterpret_cast<const char*>(script.utf16()), script.size() * 2);
+    // Compare typed GUIDs in PowerShell too: InterfaceGuid is a string with braces on some drivers.
+    const auto script = powershell::restartAdapterScript(adapterId);
     QProcess process;
     const QString powershell = qEnvironmentVariable("SystemRoot", "C:/Windows")
         + "/System32/WindowsPowerShell/v1.0/powershell.exe";
-    process.setProcessChannelMode(QProcess::MergedChannels);
     process.setCreateProcessArgumentsModifier([](QProcess::CreateProcessArguments* args) {
         args->flags |= CREATE_NO_WINDOW;
     });
-    process.start(powershell, {"-NoLogo", "-NoProfile", "-NonInteractive", "-EncodedCommand", QString::fromLatin1(utf16.toBase64())});
+    process.start(powershell, net::powershell::arguments(script));
     if (!process.waitForStarted(5000)) { log(QStringLiteral("无法启动系统 PowerShell。")); return false; }
     // Once a reset has begun, let it finish even if Stop is pressed, so we do not kill it between disable/enable.
     int elapsed = 0;
@@ -198,8 +190,11 @@ bool restartEthernet(const QString& adapterId, const Cancelled& cancelled, const
         }
     }
     if (process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0) {
+        const auto errors = process.readAllStandardError().trimmed();
+        const auto output = errors.isEmpty() ? process.readAllStandardOutput().trimmed() : errors;
         log(QStringLiteral("重启网卡失败（退出码 %1）：%2").arg(process.exitCode())
-            .arg(QString::fromLocal8Bit(process.readAll()).trimmed().left(1500)));
+            .arg(output.isEmpty() ? QStringLiteral("PowerShell 未返回错误详情。")
+                                 : QString::fromUtf8(output).left(1500)));
         return false;
     }
     log(QStringLiteral("有线网卡重启完成。"));
