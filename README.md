@@ -64,7 +64,7 @@ ICMP 检测 `223.5.5.5`（阿里 DNS）和 `119.29.29.29`（腾讯 DNS），任�
 - 支持 `Visual Studio 18 2026` 生成器的 CMake。
 - vcpkg，依赖为 `qt5-base:x64-windows` 和 `qt5-svg:x64-windows`。
 
-工程使用 C++/WinRT 和 Windows 网络 API，不提供 MinGW 或 Linux 构建。其他 Visual Studio 版本可通过本机预设调整生成器。
+工程使用 C++/WinRT 和 Windows 网络 API，不提供 MinGW 或 Linux 构建。其他 Visual Studio 版本请直接在 `CMakePresets.json` 中调整生成器。
 
 ### 安装依赖
 
@@ -74,7 +74,7 @@ ICMP 检测 `223.5.5.5`（阿里 DNS）和 `119.29.29.29`（腾讯 DNS），任�
 & 'D:\Library\vcpkg\vcpkg.exe' install qt5-base:x64-windows qt5-svg:x64-windows
 ```
 
-项目使用 vcpkg classic mode，预设中的工具链固定为 `D:/Library/vcpkg/scripts/buildsystems/vcpkg.cmake`，无需设置环境变量。其他机器请修改该路径，或通过下方的本机预设覆盖。
+项目使用 vcpkg classic mode，预设中的工具链固定为 `D:/Library/vcpkg/scripts/buildsystems/vcpkg.cmake`，无需设置环境变量。其他机器请直接在 `CMakePresets.json` 中修改该路径。
 
 ### 配置、编译与测试
 
@@ -103,19 +103,6 @@ bin/windows-x64/Debug/AutoTunHotspot.exe
 EXE、运行时 DLL、Qt 插件和 `qt.conf` 放在对应配置目录中。CMake 中间文件与静态库留在 `build/`。输出按 `TARGET_PLATFORM` 与 `$<CONFIG>` 区分平台及配置，`TARGET_PLATFORM` 默认为 `windows-x64`。
 
 测试覆盖断网三轮确认、短暂失败、停止取消、恢复操作选择、重试退避，以及窗口隐藏与唤醒、日志上限和图标切换。实际断网恢复、手机联网及长期运行效果需在目标机器上验证。
-
-### 本机配置
-
-也可复制示例预设，并修改其中的 vcpkg 路径或生成器：
-
-```powershell
-Copy-Item CMakeUserPresets.example.json CMakeUserPresets.json
-cmake --preset windows-local
-cmake --build --preset Release-local
-ctest --preset Release-local
-```
-
-`CMakeUserPresets.json` 已被 Git 忽略，用于保存本机路径；`CMakeUserPresets.example.json` 作为示例随源码提交。
 
 ### 打包分发
 
@@ -168,13 +155,12 @@ AutoTunHotspot/
 ├── tools/                          # 编译时 ICO 生成工具
 ├── CMakeLists.txt
 ├── CMakePresets.json
-├── CMakeUserPresets.example.json
 └── qt.conf
 ```
 
 ## Git 与首次上传
 
-源码仓库忽略 `build/`、`bin/`、`install/`、运行数据、日志、编译中间文件和本机 IDE 设置。源码、公共预设、配置示例、原始图标、文档和截图正常提交。
+源码仓库忽略 `build/`、`bin/`、`install/`、运行数据、日志、编译中间文件和本机 IDE 设置。源码、`CMakePresets.json`、原始图标、文档和截图正常提交。
 
 先在 GitHub 创建空仓库，再将下面的示例地址替换为自己的仓库地址：
 
