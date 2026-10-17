@@ -1,0 +1,13 @@
+# Normalize text in the repository and on checkout.
+* text=auto eol=lf
+
+# Windows command scripts use native line endings.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Preserve raster images and icons as binary files.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary

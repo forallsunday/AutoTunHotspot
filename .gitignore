@@ -1,0 +1,56 @@
+# CMake build trees, runtime outputs and installation packages
+/build/
+/build-*/
+/cmake-build-*/
+/bin/
+/install/
+/out/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+Testing/
+compile_commands.json
+
+# Machine-specific CMake and IDE settings
+CMakeUserPresets.json
+.vs/
+.vscode/
+*.user
+*.suo
+*.sln.docstates
+*.VC.db
+*.VC.opendb
+
+# Compiled and generated files; preserve original SVG, PNG and QRC assets
+*.obj
+*.o
+*.pdb
+*.ilk
+*.idb
+*.pch
+*.ipch
+*.exp
+*.lib
+*.exe
+*.dll
+*.tlog
+*.lastbuildstate
+*_rc.py
+__pycache__/
+*.pyc
+
+# Runtime settings and logs at any depth
+data/
+*.log
+
+# Local credentials, temporary files and operating-system metadata
+.env
+.env.*
+!.env.example
+*.tmp
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
+Desktop.ini

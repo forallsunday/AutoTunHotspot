@@ -1,0 +1,29 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "windows-msvc",
+      "displayName": "Windows x64 / MSVC / Qt 5",
+      "generator": "Visual Studio 18 2026",
+      "binaryDir": "${sourceDir}/build/windows-msvc",
+      "installDir": "${sourceDir}/install/windows_x64",
+      "architecture": "x64",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "D:/Library/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_MANIFEST_MODE": "OFF",
+        "TARGET_PLATFORM": "windows-x64",
+        "BUILD_TESTING": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "Debug-windows-msvc", "configurePreset": "windows-msvc", "configuration": "Debug", "jobs": 1, "nativeToolOptions": ["/nr:false"] },
+    { "name": "Release-windows-msvc", "configurePreset": "windows-msvc", "configuration": "Release", "jobs": 1, "nativeToolOptions": ["/nr:false"] }
+  ],
+  "testPresets": [
+    { "name": "Release-windows-msvc", "configurePreset": "windows-msvc", "configuration": "Release", "output": { "outputOnFailure": true } },
+    { "name": "Debug-windows-msvc", "configurePreset": "windows-msvc", "configuration": "Debug", "output": { "outputOnFailure": true } }
+  ]
+}

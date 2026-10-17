@@ -1,0 +1,21 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "windows-local",
+      "displayName": "Windows x64 / local vcpkg",
+      "inherits": "windows-msvc",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "D:/Library/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "Release-local", "inherits": "Release-windows-msvc", "configurePreset": "windows-local" },
+    { "name": "Debug-local", "inherits": "Debug-windows-msvc", "configurePreset": "windows-local" }
+  ],
+  "testPresets": [
+    { "name": "Release-local", "inherits": "Release-windows-msvc", "configurePreset": "windows-local" },
+    { "name": "Debug-local", "inherits": "Debug-windows-msvc", "configurePreset": "windows-local" }
+  ]
+}
