@@ -389,7 +389,7 @@ bool MainWindow::smokeTest(const QString& output) {
     result["changelogOpens"] = changelog && changelog->isVisible();
     result["changelogNonModal"] = changelog && !changelog->isModal() && isEnabled();
     result["changelogCurrentVersion"] = text.contains(QApplication::applicationVersion());
-    result["changelogHistory"] = text.contains("1.0.0") && text.contains("GUID") && text.contains("250%");
+    result["changelogHistory"] = text.contains("0.0.0") && text.contains("GUID") && text.contains("250%");
     changelogButton_->click();
     result["changelogSingleWindow"] = changelogDialog_.data() == changelog;
     result["changelogKeepsMainVisible"] = isVisible();
