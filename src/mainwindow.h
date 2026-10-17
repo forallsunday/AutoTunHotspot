@@ -1,6 +1,7 @@
 #pragma once
 #include "network.h"
 #include <QMainWindow>
+#include <QPointer>
 #include <QFutureWatcher>
 #include <QFile>
 #include <QSettings>
@@ -12,6 +13,7 @@ class QComboBox;
 class QLabel;
 class QTextBrowser;
 class QPushButton;
+class QDialog;
 class ToggleSwitch;
 class Monitor;
 
@@ -32,11 +34,14 @@ private:
     void appendLog(const QString& message);
     void updateStatus(const QString& message, bool healthy);
     void saveSelection();
+    void showChangelog();
     QComboBox *ethernet_, *tun_;
     QLabel *tunStatus_, *state_, *lastCheck_, *headerIcon_;
     QTextBrowser* logs_;
     ToggleSwitch* toggle_;
     QPushButton* refresh_;
+    QPushButton* changelogButton_;
+    QPointer<QDialog> changelogDialog_;
     QSystemTrayIcon* tray_;
     QFutureWatcher<net::Snapshot> watcher_;
     QTimer refreshTimer_;

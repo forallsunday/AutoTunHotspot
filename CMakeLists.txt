@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(AutoTunHotspot VERSION 1.0.0 LANGUAGES CXX RC)
+project(AutoTunHotspot VERSION 1.1.0 LANGUAGES CXX RC)
 
 if(NOT WIN32 OR NOT MSVC)
     message(FATAL_ERROR "AutoTunHotspot requires Windows and MSVC (C++/WinRT).")
@@ -37,6 +37,7 @@ add_executable(AutoTunHotspot WIN32
     src/toggleswitch.cpp src/toggleswitch.h src/icons.cpp assets/resources.qrc "${CMAKE_BINARY_DIR}/generated/app.rc")
 add_dependencies(AutoTunHotspot app_icon)
 target_link_libraries(AutoTunHotspot PRIVATE hotspot_backend Qt5::Widgets Qt5::Concurrent Qt5::Network Qt5::Svg shell32)
+target_compile_definitions(AutoTunHotspot PRIVATE AUTOTUNHOTSPOT_VERSION="${PROJECT_VERSION}")
 target_link_options(AutoTunHotspot PRIVATE "/MANIFESTUAC:level='asInvoker' uiAccess='false'")
 
 # vcpkg copies DLL dependencies beside the executable. Copy the Qt platform plugin, too.
@@ -70,7 +71,7 @@ if(BUILD_TESTING)
 endif()
 
 install(TARGETS AutoTunHotspot RUNTIME DESTINATION .)
-install(FILES README.md qt.conf DESTINATION .)
+install(FILES README.md CHANGELOG.md qt.conf DESTINATION .)
 install(FILES assets/NOTICE.md assets/LICENSE-material-icons.txt DESTINATION licenses)
 foreach(QT_PORT qt5-base qt5-svg qt5-imageformats brotli bzip2 double-conversion freetype harfbuzz
         libjpeg-turbo liblzma libpng libwebp openssl pcre2 tiff zlib zstd)

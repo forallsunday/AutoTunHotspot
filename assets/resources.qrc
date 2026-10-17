@@ -1,1 +1,9 @@
-<RCC><qresource prefix="/icons"><file alias="hotspot.svg">wifi-tethering.svg</file><file alias="chevron.svg">chevron.svg</file></qresource></RCC>
+<RCC>
+  <qresource prefix="/icons">
+    <file alias="hotspot.svg">wifi-tethering.svg</file>
+    <file alias="chevron.svg">chevron.svg</file>
+  </qresource>
+  <qresource prefix="/docs">
+    <file alias="CHANGELOG.md">../CHANGELOG.md</file>
+  </qresource>
+</RCC>

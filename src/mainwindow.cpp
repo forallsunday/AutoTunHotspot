@@ -9,6 +9,8 @@
 #include <QCursor>
 #include <QDateTime>
 #include <QDesktopServices>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QDir>
 #include <QFormLayout>
 #include <QFrame>
@@ -146,12 +148,20 @@ MainWindow::MainWindow(bool preview) : preview_(preview) {
     logs_->setOpenExternalLinks(false);
     logs_->document()->setMaximumBlockCount(1000);
     logLayout->addWidget(logs_); root->addWidget(logCard, 1);
-    auto* footer = new QLabel(QStringLiteral("关闭窗口后继续在托盘运行  ·  右键托盘图标 → 退出"));
-    footer->setObjectName("muted"); footer->setAlignment(Qt::AlignCenter); root->addWidget(footer);
+    auto* footerRow = new QHBoxLayout;
+    auto* footer = new QLabel(QStringLiteral("关闭窗口后在托盘运行 · 右键退出"));
+    footer->setObjectName("muted"); footer->setWordWrap(true);
+    footerRow->addWidget(footer, 1);
+    auto* version = new QLabel("v" + QApplication::applicationVersion());
+    version->setObjectName("muted"); footerRow->addWidget(version);
+    changelogButton_ = new QPushButton(QStringLiteral("更新日志"));
+    connect(changelogButton_, &QPushButton::clicked, this, &MainWindow::showChangelog);
+    footerRow->addWidget(changelogButton_); root->addLayout(footerRow);
 
     tray_ = new QSystemTrayIcon(hotspotIcon(false), this);
     auto* trayMenu = new QMenu(this);
     trayMenu->addAction(QStringLiteral("显示"), this, &MainWindow::showWindow);
+    trayMenu->addAction(QStringLiteral("更新日志"), this, &MainWindow::showChangelog);
     trayMenu->addSeparator();
     trayMenu->addAction(QStringLiteral("退出"), this, &MainWindow::requestExit);
     tray_->setContextMenu(trayMenu);
@@ -306,6 +316,45 @@ void MainWindow::toggleMonitoring(bool enabled) {
 }
 
 void MainWindow::showWindow() { showNormal(); raise(); activateWindow(); }
+
+void MainWindow::showChangelog() {
+    if (!changelogDialog_) {
+        auto* dialog = new QDialog(this);
+        changelogDialog_ = dialog;
+        dialog->setObjectName("changelogDialog");
+        dialog->setAttribute(Qt::WA_DeleteOnClose);
+        dialog->setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+        dialog->setWindowTitle(QStringLiteral("更新日志 · v") + QApplication::applicationVersion());
+        auto* screen = this->screen();
+        const auto available = screen ? screen->availableGeometry() : QRect(0, 0, 1280, 720);
+        const int width = qMax(320, available.width() - 32);
+        const int height = qMax(320, available.height() - 64);
+        dialog->setMinimumSize(qMin(440, width), qMin(320, height));
+        dialog->resize(qMin(560, width), qMin(500, height));
+        auto* layout = new QVBoxLayout(dialog);
+        layout->setContentsMargins(16, 14, 16, 14);
+        layout->addWidget(new QLabel(QStringLiteral("当前版本：v") + QApplication::applicationVersion()));
+        auto* browser = new QTextBrowser(dialog);
+        browser->setObjectName("changelogText");
+        browser->setOpenExternalLinks(false);
+        browser->setStyleSheet("QTextBrowser { font-family: 'Microsoft YaHei UI'; font-size: 12px; }");
+        browser->document()->setDefaultStyleSheet(
+            "h1 { font-size: 18px; } h2 { font-size: 15px; } h3 { font-size: 13px; }"
+            "li { margin-bottom: 4px; }");
+        QFile changelog(QStringLiteral(":/docs/CHANGELOG.md"));
+        if (changelog.open(QIODevice::ReadOnly)) browser->setMarkdown(QString::fromUtf8(changelog.readAll()));
+        else browser->setPlainText(QStringLiteral("无法读取内嵌更新日志。"));
+        layout->addWidget(browser, 1);
+        auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, dialog);
+        buttons->button(QDialogButtonBox::Close)->setText(QStringLiteral("关闭"));
+        connect(buttons, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
+        layout->addWidget(buttons);
+    }
+    changelogDialog_->showNormal();
+    changelogDialog_->raise();
+    changelogDialog_->activateWindow();
+}
+
 void MainWindow::closeEvent(QCloseEvent* event) {
     event->ignore();
     if (quitting_) return;
@@ -333,11 +382,33 @@ bool MainWindow::smokeTest(const QString& output) {
     result["initialSwitchOff"] = !toggle_->isChecked();
     result["logVisible"] = !logs_->toPlainText().isEmpty();
     result["initialIconGray"] = !healthy_;
+    changelogButton_->click();
+    auto* changelog = changelogDialog_.data();
+    auto* browser = changelog ? changelog->findChild<QTextBrowser*>("changelogText") : nullptr;
+    const auto text = browser ? browser->toPlainText() : QString();
+    result["changelogOpens"] = changelog && changelog->isVisible();
+    result["changelogNonModal"] = changelog && !changelog->isModal() && isEnabled();
+    result["changelogCurrentVersion"] = text.contains(QApplication::applicationVersion());
+    result["changelogHistory"] = text.contains("1.0.0") && text.contains("GUID") && text.contains("250%");
+    changelogButton_->click();
+    result["changelogSingleWindow"] = changelogDialog_.data() == changelog;
+    result["changelogKeepsMainVisible"] = isVisible();
+    if (changelog) {
+        result["changelogRenders"] = changelog->grab().save(output + ".changelog.png");
+        changelog->close();
+    }
+    result["closingChangelogKeepsMainVisible"] = isVisible();
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
     updateStatus(QStringLiteral("测试：热点正常"), true);
     const auto color = windowIcon().pixmap(32).toImage();
     updateStatus(QStringLiteral("测试：国内网络异常"), false);
     result["iconChangesWithInternet"] = color != windowIcon().pixmap(32).toImage();
     close(); result["closeOnlyHides"] = !isVisible();
+    tray_->contextMenu()->actions().at(1)->trigger();
+    result["trayChangelogOpens"] = changelogDialog_ && changelogDialog_->isVisible();
+    result["trayChangelogKeepsMainHidden"] = !isVisible();
+    if (changelogDialog_) changelogDialog_->close();
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
     tray_->activated(QSystemTrayIcon::DoubleClick);
     result["trayDoubleClickRestoresWindow"] = isVisible();
     close();

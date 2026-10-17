@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     QApplication app(argc, argv);
     app.setApplicationName("AutoTunHotspot");
     app.setOrganizationName("AutoTunHotspot");
-    app.setApplicationVersion("1.0.0");
+    app.setApplicationVersion(QString::fromLatin1(AUTOTUNHOTSPOT_VERSION));
     app.setStyle("Fusion");
     QFont uiFont(QStringLiteral("Microsoft YaHei UI"));
     uiFont.setPixelSize(12);
